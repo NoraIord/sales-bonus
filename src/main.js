@@ -30,6 +30,13 @@ function calculateBonusByProfit(sellerIndex, totalSellers, sellerData) {
     return parseFloat(bonus.toFixed(2));
 }
 
+// Функция для естественной сортировки SKU
+function naturalSKUCompare(a, b) {
+    // Извлекаем числовую часть из SKU
+    const getNumber = (sku) => parseInt(sku.replace('SKU_', ''), 10);
+    return getNumber(a) - getNumber(b);
+}
+
 // Основная функция анализа данных продаж
 function analyzeSalesData(data, options = {}) {
     const { calculateRevenue, calculateBonus } = options;
@@ -130,9 +137,8 @@ function analyzeSalesData(data, options = {}) {
                     if (b.quantity !== a.quantity) {
                         return b.quantity - a.quantity;
                     }
-                    // Если количество одинаковое, сортируем по SKU как строки
-                    // Это даст правильный порядок: SKU_001, SKU_002, ..., SKU_010, SKU_011
-                    return a.sku.localeCompare(b.sku, undefined, { numeric: true });
+                    // Если количество одинаковое, сортируем по SKU в естественном порядке
+                    return naturalSKUCompare(a.sku, b.sku);
                 })
                 .slice(0, 10);
             
