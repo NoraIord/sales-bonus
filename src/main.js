@@ -132,14 +132,16 @@ function analyzeSalesData(data, options = {}) {
         if (sellerProducts[index]) {
             const productsArray = Object.entries(sellerProducts[index])
                 .map(([sku, quantity]) => ({ sku, quantity }))
-                .sort((a, b) => {
-                    // Сначала сортируем по количеству (по убыванию)
-                    if (b.quantity !== a.quantity) {
-                        return b.quantity - a.quantity;
-                    }
-                    // Если количество одинаковое, сортируем по SKU в естественном порядке
-                    return naturalSKUCompare(a.sku, b.sku);
-                })
+                // Альтернативная сортировка - по убыванию SKU при одинаковом количестве
+.sort((a, b) => {
+    // Сначала сортируем по количеству (по убыванию)
+    if (b.quantity !== a.quantity) {
+        return b.quantity - a.quantity;
+    }
+    // Если количество одинаковое, сортируем по SKU по убыванию
+    const getNumber = (sku) => parseInt(sku.replace('SKU_', ''), 10);
+    return getNumber(b.sku) - getNumber(a.sku);
+})
                 .slice(0, 10);
             
             seller.top_products = productsArray;
