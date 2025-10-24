@@ -130,9 +130,8 @@ function analyzeSalesData(data, options = {}) {
                     if (b.quantity !== a.quantity) {
                         return b.quantity - a.quantity;
                     }
-                    // Если количество одинаковое, сортируем по SKU по УБЫВАНИЮ (от большего к меньшему)
-                    const getNumber = (sku) => parseInt(sku.replace('SKU_', ''), 10);
-                    return getNumber(b.sku) - getNumber(a.sku);
+                    // Если количество одинаковое, сортируем по SKU как строки по УБЫВАНИЮ
+                    return b.sku.localeCompare(a.sku);
                 })
                 .slice(0, 10);
             
