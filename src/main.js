@@ -63,7 +63,7 @@ function analyzeSalesData(data, options = {}) {
         name: `${seller.first_name} ${seller.last_name}`,
         revenue: 0,
         profit: 0,
-        sales_count: 0,
+        sales_count: 0, // Будем считать количество чеков, а не товаров
         top_products: [],
         bonus: 0
     }));
@@ -79,37 +79,41 @@ function analyzeSalesData(data, options = {}) {
     
     // Обрабатываем каждую запись о покупке
     purchase_records.forEach(purchase => {
-        purchase.items.forEach(item => {
-            const seller = sellersMap[purchase.seller_id];
-            const product = productsMap[item.sku];
+        const seller = sellersMap[purchase.seller_id];
+        
+        if (seller) {
+            const sellerResult = seller.result;
+            const sellerIndex = seller.index;
             
-            if (seller && product) {
-                const sellerResult = seller.result;
-                const sellerIndex = seller.index;
+            // Увеличиваем счетчик продаж (количество чеков)
+            sellerResult.sales_count += 1;
+            
+            // Обрабатываем каждый товар в чеке
+            purchase.items.forEach(item => {
+                const product = productsMap[item.sku];
                 
-                // Рассчитываем выручку
-                const revenue = calculateRevenue(item, product);
-                sellerResult.revenue += revenue;
-                
-                // Рассчитываем прибыль (выручка - себестоимость)
-                const cost = product.purchase_price * item.quantity;
-                const profit = revenue - cost;
-                sellerResult.profit += profit;
-                
-                // Увеличиваем счетчик продаж
-                sellerResult.sales_count += item.quantity;
-                
-                // Собираем статистику по продуктам
-                if (!sellerProducts[sellerIndex]) {
-                    sellerProducts[sellerIndex] = {};
+                if (product) {
+                    // Рассчитываем выручку
+                    const revenue = calculateRevenue(item, product);
+                    sellerResult.revenue += revenue;
+                    
+                    // Рассчитываем прибыль (выручка - себестоимость)
+                    const cost = product.purchase_price * item.quantity;
+                    const profit = revenue - cost;
+                    sellerResult.profit += profit;
+                    
+                    // Собираем статистику по продуктам
+                    if (!sellerProducts[sellerIndex]) {
+                        sellerProducts[sellerIndex] = {};
+                    }
+                    
+                    if (!sellerProducts[sellerIndex][item.sku]) {
+                        sellerProducts[sellerIndex][item.sku] = 0;
+                    }
+                    sellerProducts[sellerIndex][item.sku] += item.quantity;
                 }
-                
-                if (!sellerProducts[sellerIndex][item.sku]) {
-                    sellerProducts[sellerIndex][item.sku] = 0;
-                }
-                sellerProducts[sellerIndex][item.sku] += item.quantity;
-            }
-        });
+            });
+        }
     });
     
     // Форматируем числовые значения и определяем топ-продукты
@@ -121,7 +125,14 @@ function analyzeSalesData(data, options = {}) {
         if (sellerProducts[index]) {
             const productsArray = Object.entries(sellerProducts[index])
                 .map(([sku, quantity]) => ({ sku, quantity }))
-                .sort((a, b) => b.quantity - a.quantity || a.sku.localeCompare(b.sku))
+                .sort((a, b) => {
+                    // Сначала сортируем по количеству (по убыванию)
+                    if (b.quantity !== a.quantity) {
+                        return b.quantity - a.quantity;
+                    }
+                    // Если количество одинаковое, сортируем по SKU (по возрастанию)
+                    return a.sku.localeCompare(b.sku);
+                })
                 .slice(0, 10);
             
             seller.top_products = productsArray;
@@ -134,6 +145,7 @@ function analyzeSalesData(data, options = {}) {
     // Рассчитываем бонусы
     sellersResults.forEach((seller, index) => {
         seller.bonus = calculateBonus(index, sellersResults.length, seller);
+        seller.bonus = parseFloat(seller.bonus.toFixed(2));
     });
     
     return sellersResults;
