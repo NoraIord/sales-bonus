@@ -5,8 +5,9 @@ function calculateSimpleRevenue(purchaseItem, product) {
     }
     
     const { sale_price, quantity, discount = 0 } = purchaseItem;
-    const revenue = sale_price * quantity * (1 - discount / 100);
-    return parseFloat(revenue.toFixed(2));
+    // Более точный расчет для избежания ошибок округления
+    const revenue = (sale_price * quantity * (100 - discount)) / 100;
+    return Math.round(revenue * 100) / 100;
 }
 
 // Функция расчета бонусов на основе позиции в рейтинге
@@ -27,7 +28,7 @@ function calculateBonusByProfit(sellerIndex, totalSellers, sellerData) {
     }
     
     const bonus = profit * bonusRate;
-    return parseFloat(bonus.toFixed(2));
+    return Math.round(bonus * 100) / 100;
 }
 
 // Основная функция анализа данных продаж
@@ -93,7 +94,7 @@ function analyzeSalesData(data, options = {}) {
                 const product = productsMap[item.sku];
                 
                 if (product) {
-                    // Рассчитываем выручку
+                    // Рассчитываем выручку (без промежуточного округления)
                     const revenue = calculateRevenue(item, product);
                     sellerResult.revenue += revenue;
                     
@@ -118,8 +119,9 @@ function analyzeSalesData(data, options = {}) {
     
     // Форматируем числовые значения и определяем топ-продукты
     sellersResults.forEach((seller, index) => {
-        seller.revenue = parseFloat(seller.revenue.toFixed(2));
-        seller.profit = parseFloat(seller.profit.toFixed(2));
+        // Округляем только в конце
+        seller.revenue = Math.round(seller.revenue * 100) / 100;
+        seller.profit = Math.round(seller.profit * 100) / 100;
         
         // Формируем топ-продукты
         if (sellerProducts[index]) {
