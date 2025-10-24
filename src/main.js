@@ -1,11 +1,4 @@
-/**
- * Функция для расчета выручки
- * @param purchase запись о покупке
- * @param _product карточка товара
- * @returns {number}
- */
 // Функция расчета выручки для одного товара в чеке
-
 function calculateSimpleRevenue(purchaseItem, product) {
     if (!purchaseItem || !product) {
         throw new Error('Необходимо передать purchaseItem и product');
@@ -16,13 +9,6 @@ function calculateSimpleRevenue(purchaseItem, product) {
     return parseFloat(revenue.toFixed(2));
 }
 
-/**
- * Функция для расчета бонусов
- * @param index порядковый номер в отсортированном массиве
- * @param total общее число продавцов
- * @param seller карточка продавца
- * @returns {number}
- */
 // Функция расчета бонусов на основе позиции в рейтинге
 function calculateBonusByProfit(sellerIndex, totalSellers, sellerData) {
     if (sellerIndex >= totalSellers - 1) {
@@ -44,19 +30,6 @@ function calculateBonusByProfit(sellerIndex, totalSellers, sellerData) {
     return parseFloat(bonus.toFixed(2));
 }
 
-// Функция для естественной сортировки SKU
-function naturalSKUCompare(a, b) {
-    // Извлекаем числовую часть из SKU
-    const getNumber = (sku) => parseInt(sku.replace('SKU_', ''), 10);
-    return getNumber(a) - getNumber(b);
-}
-
-/**
- * Функция для анализа данных продаж
- * @param data
- * @param options
- * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
- */
 // Основная функция анализа данных продаж
 function analyzeSalesData(data, options = {}) {
     const { calculateRevenue, calculateBonus } = options;
@@ -152,15 +125,15 @@ function analyzeSalesData(data, options = {}) {
         if (sellerProducts[index]) {
             const productsArray = Object.entries(sellerProducts[index])
                 .map(([sku, quantity]) => ({ sku, quantity }))
-                // Сортировка по убыванию строк SKU
                 .sort((a, b) => {
-    // Сначала сортируем по количеству (по убыванию)
-    if (b.quantity !== a.quantity) {
-        return b.quantity - a.quantity;
-    }
-    // Если количество одинаковое, сортируем по SKU по убыванию
-    return b.sku.localeCompare(a.sku);
-})
+                    // Сначала сортируем по количеству (по убыванию)
+                    if (b.quantity !== a.quantity) {
+                        return b.quantity - a.quantity;
+                    }
+                    // Если количество одинаковое, сортируем по SKU по УБЫВАНИЮ (от большего к меньшему)
+                    const getNumber = (sku) => parseInt(sku.replace('SKU_', ''), 10);
+                    return getNumber(b.sku) - getNumber(a.sku);
+                })
                 .slice(0, 10);
             
             seller.top_products = productsArray;
