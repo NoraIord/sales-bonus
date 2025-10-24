@@ -1,4 +1,11 @@
+/**
+ * Функция для расчета выручки
+ * @param purchase запись о покупке
+ * @param _product карточка товара
+ * @returns {number}
+ */
 // Функция расчета выручки для одного товара в чеке
+
 function calculateSimpleRevenue(purchaseItem, product) {
     if (!purchaseItem || !product) {
         throw new Error('Необходимо передать purchaseItem и product');
@@ -9,6 +16,13 @@ function calculateSimpleRevenue(purchaseItem, product) {
     return parseFloat(revenue.toFixed(2));
 }
 
+/**
+ * Функция для расчета бонусов
+ * @param index порядковый номер в отсортированном массиве
+ * @param total общее число продавцов
+ * @param seller карточка продавца
+ * @returns {number}
+ */
 // Функция расчета бонусов на основе позиции в рейтинге
 function calculateBonusByProfit(sellerIndex, totalSellers, sellerData) {
     if (sellerIndex >= totalSellers - 1) {
@@ -37,6 +51,12 @@ function naturalSKUCompare(a, b) {
     return getNumber(a) - getNumber(b);
 }
 
+/**
+ * Функция для анализа данных продаж
+ * @param data
+ * @param options
+ * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
+ */
 // Основная функция анализа данных продаж
 function analyzeSalesData(data, options = {}) {
     const { calculateRevenue, calculateBonus } = options;
