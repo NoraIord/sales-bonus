@@ -6,7 +6,7 @@ function calculateSimpleRevenue(purchaseItem, product) {
     
     const { sale_price, quantity, discount = 0 } = purchaseItem;
     const revenue = sale_price * quantity * (1 - discount / 100);
-    return parseFloat(revenue.toFixed(2));
+    return Math.round(revenue * 100) / 100; // Более точное округление
 }
 
 // Функция расчета бонусов на основе позиции в рейтинге
@@ -27,7 +27,7 @@ function calculateBonusByProfit(sellerIndex, totalSellers, sellerData) {
     }
     
     const bonus = profit * bonusRate;
-    return parseFloat(bonus.toFixed(2));
+    return Math.round(bonus * 100) / 100; // Более точное округление
 }
 
 // Основная функция анализа данных продаж
@@ -63,7 +63,7 @@ function analyzeSalesData(data, options = {}) {
         name: `${seller.first_name} ${seller.last_name}`,
         revenue: 0,
         profit: 0,
-        sales_count: 0, // Будем считать количество чеков, а не товаров
+        sales_count: 0, // Количество чеков
         top_products: [],
         bonus: 0
     }));
@@ -118,8 +118,8 @@ function analyzeSalesData(data, options = {}) {
     
     // Форматируем числовые значения и определяем топ-продукты
     sellersResults.forEach((seller, index) => {
-        seller.revenue = parseFloat(seller.revenue.toFixed(2));
-        seller.profit = parseFloat(seller.profit.toFixed(2));
+        seller.revenue = Math.round(seller.revenue * 100) / 100;
+        seller.profit = Math.round(seller.profit * 100) / 100;
         
         // Формируем топ-продукты
         if (sellerProducts[index]) {
@@ -131,7 +131,10 @@ function analyzeSalesData(data, options = {}) {
                         return b.quantity - a.quantity;
                     }
                     // Если количество одинаковое, сортируем по SKU (по возрастанию)
-                    return a.sku.localeCompare(b.sku);
+                    // Но учитываем числовую часть SKU для правильной сортировки
+                    const aNum = parseInt(a.sku.split('_')[1]);
+                    const bNum = parseInt(b.sku.split('_')[1]);
+                    return aNum - bNum;
                 })
                 .slice(0, 10);
             
@@ -145,7 +148,7 @@ function analyzeSalesData(data, options = {}) {
     // Рассчитываем бонусы
     sellersResults.forEach((seller, index) => {
         seller.bonus = calculateBonus(index, sellersResults.length, seller);
-        seller.bonus = parseFloat(seller.bonus.toFixed(2));
+        seller.bonus = Math.round(seller.bonus * 100) / 100;
     });
     
     return sellersResults;
